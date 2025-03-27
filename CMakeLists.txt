@@ -8,6 +8,12 @@ target_link_libraries(pthread_threads -lpthread)
 
 add_executable(cxx_threads src/cxx_thread/threads.cxx)
 target_link_libraries(cxx_threads -pthread)
+
+set(HIP_INCLUDE_DIR /opt/rocm/include)
+set(HIP_INCLUDE_HEADERS ${HIP_INCLUDE_DIR}/hip/hip_runtime.h)
+add_executable(hip_hello src/hip/hello.cxx ${HIP_INCLUDE_HEADERS})
+target_include_directories(hip_hello PUBLIC ${HIP_INCLUDE_DIR})
+
 include(CTest)
 enable_testing()
 

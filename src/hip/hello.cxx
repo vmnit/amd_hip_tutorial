@@ -6,7 +6,7 @@ __global__ void gpuHello() {
 }
 
 int main() {
-    gpuHello<<<1, 1>>>();
+    gpuHello<<<4, 4>>>();
     hipDeviceSynchronize();
 
     return 0;
