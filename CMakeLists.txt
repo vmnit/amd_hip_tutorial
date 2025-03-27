@@ -6,6 +6,8 @@ add_executable(pthread_serial src/pthread/serial.cxx)
 add_executable(pthread_threads src/pthread/threads.cxx)
 target_link_libraries(pthread_threads -lpthread)
 
+add_executable(cxx_threads src/cxx_thread/threads.cxx)
+target_link_libraries(cxx_threads -pthread)
 include(CTest)
 enable_testing()
 
