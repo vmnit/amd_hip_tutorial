@@ -1,7 +1,7 @@
 #include <hip/hip_runtime.h>
-//#include <hip/hip_runtime_api.h>
 #include <iostream>
 #include <cstdlib>
+#include "utils/Timer.h"
 
 const int BLOCK_SIZE = 16;
 const int N = 256;
@@ -39,6 +39,7 @@ int main() {
   int *h_c = new int[N * N];
   int *h_cc = new int[N * N];
 
+  Timer t;
   // Initialize Matrix A
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
@@ -52,6 +53,8 @@ int main() {
       h_b[i*N + j] = rand() % RAND_MAX;
     }
   }
+  t.report("PERF: Init: ");
+  t.restart();
 
   int *d_a, *d_b, *d_c;
   hipMalloc((void**) &d_a, sizeof(int) * N * N);
@@ -66,12 +69,17 @@ int main() {
 
   dim3 blocksPerGrid (n_blocks, n_blocks);
 
+  t.report("PERF: After allocations: ");
   gpu_matrix_multiplication<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, N);
   hipDeviceSynchronize();
+  t.report("PERF: After GPU: ");
 
   hipMemcpy(h_c, d_c, sizeof(int) * N * N, hipMemcpyDeviceToHost);
+  t.report("PERF: After GPU data copy: ");
 
+  t.restart();
   cpu_matrix_multiplication(h_a, h_b, h_cc, N);
+  t.report("PERF: After CPU: ");
 
   bool error = false;
   for (int i = 0; i < N*N; i++) {
