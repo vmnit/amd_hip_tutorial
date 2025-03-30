@@ -1,6 +1,6 @@
 #include <iostream>
 
-#define C_BASED 1
+#define C_BASED 0
 #if C_BASED
 #include <sys/times.h>
 #include <unistd.h>
@@ -56,19 +56,19 @@ class Timer {
 
 class Timer {
   public:
-    Timer() : start_(std::chrono::high_resolution_clock::now()) {}
+    Timer() : start_(std::chrono::steady_clock::now()) {}
 
     void restart() {
-      start_ = std::chrono::high_resolution_clock::now();
+      start_ = std::chrono::steady_clock::now();
     }
 
     void report(const std::string& msg = "PERF: ") {
-      const auto end = std::chrono::high_resolution_clock::now();
+      const auto end = std::chrono::steady_clock::now();
       const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count();
       std::cout << msg << duration << " ms\n";
     }
 
   private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> start_;
+    std::chrono::time_point<std::chrono::steady_clock> start_;
 };
 #endif

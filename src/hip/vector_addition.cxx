@@ -1,5 +1,4 @@
 #include <hip/hip_runtime.h>
-//#include <hip/hip_runtime_api.h>
 #include <iostream>
 
 const int N = 1000000;
@@ -29,7 +28,7 @@ int main() {
 
     hipMemcpy(d_a, a, sizeof(float) * N, hipMemcpyHostToDevice);
     hipMemcpy(d_b, b, sizeof(float) * N, hipMemcpyHostToDevice);
-    
+
     int blockSize = 256;
     int gridSize = (N + blockSize - 1) / blockSize;
 

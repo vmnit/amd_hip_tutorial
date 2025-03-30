@@ -3,8 +3,8 @@ project(AMD_HIP_TUTORIAL VERSION 0.1.0 LANGUAGES C CXX)
 
 add_executable(pthread_serial src/pthread/serial.cxx)
 
-add_executable(pthread_threads src/pthread/threads.cxx src/utils/Timer.h)
-target_include_directories(pthread_threads PRIVATE src)
+add_executable(pthread_threads src/pthread/threads.cxx src/utils/Timer.h third_party/taskflow/taskflow/taskflow.hpp)
+target_include_directories(pthread_threads PRIVATE src third_party/taskflow)
 target_link_libraries(pthread_threads -lpthread)
 
 add_executable(cxx_threads src/cxx_thread/threads.cxx)
