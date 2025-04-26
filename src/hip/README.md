@@ -36,3 +36,9 @@ roc-obj-extract file://sq_cube_no_hipstream#offset=16384&size=6648
 
 It will generate the .co file which can be disassembled using llvm-obj-dump. But couldn't find the utility in the rocm installation, so roc-obj can be used instead as mentioned above.
 
+# rocgdb
+
+```
+hipcc -g vector_add_v1.cxx -o vector_add_v1_dbg -I../
+rocgdb vector_add_v1_dbg
+```

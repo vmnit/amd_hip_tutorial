@@ -8,7 +8,7 @@ hipcc <src_filename> -o <out_binary_name>
 ```
 Note: cmake flow is not updated for the above HIP programs.
 
-For more details, please refer README.md in src/hip directory.
+For more details, please refer `README.md` at location: `src/hip/README.md`
 
 # Using taskflow as submodule for parallel programming, so run following to initialize it
 ```
