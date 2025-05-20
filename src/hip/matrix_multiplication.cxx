@@ -1,7 +1,7 @@
 #include <hip/hip_runtime.h>
 #include <iostream>
 #include <cstdlib>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 
 const int BLOCK_SIZE = 16;
 const int N = 256;

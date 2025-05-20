@@ -1,7 +1,7 @@
 #include <hip/hip_runtime.h>
 #include <hiprand/hiprand_kernel.h>
 #include <iostream>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 
 const int N = 100000000;
 const int THREADS_PER_BLOCK = 256;  // Threads per block

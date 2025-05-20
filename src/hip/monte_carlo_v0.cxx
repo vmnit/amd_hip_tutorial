@@ -1,6 +1,6 @@
 #include <hip/hip_runtime.h>
 #include <hiprand/hiprand_kernel.h>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 #include "taskflow/taskflow.hpp"
 #include <pthread.h>
 #include <cstdlib>

@@ -1,6 +1,6 @@
 #include <hip/hip_runtime.h>
 #include <iostream>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 
 const int N = 100000000;
 

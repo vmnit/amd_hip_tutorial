@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <cstdlib>
 #include <iostream>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 #include "taskflow/taskflow.hpp"
 #include <vector>
 #include <future>

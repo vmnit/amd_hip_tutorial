@@ -1,7 +1,7 @@
 #include <hip/hip_runtime.h>
 #include <iostream>
 #include <vector>
-#include "utils/Timer.h"
+#include "utils/Timer.hpp"
 
 __global__ void vector_add(const float* A, const float* B, float* C, int n) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
