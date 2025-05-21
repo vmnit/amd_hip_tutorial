@@ -35,8 +35,9 @@
 
 #include <cmath>
 
+template<unsigned int Width>
 __global__ void heavy_trig_kernel(float* out) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = (Width + blockIdx.x) * blockDim.x + threadIdx.x;
     if (idx >= N) return;
 
     float val = idx * 0.001f;
@@ -117,6 +118,11 @@ __global__ void matrix_transpose_dynamic_shared(float* out, const float* in, con
 int main()
 {
     Timer t;
+
+    // Number of streams to be used. It is hardcoded to 2 as this example demonstrates
+    // only two kernel launches and their management.
+    constexpr unsigned int num_streams = 2;
+#if 0
     // Dimension of the input square matrix is width x width
     constexpr unsigned int width = 64;
     constexpr unsigned int size  = width * width;
@@ -127,10 +133,6 @@ int main()
     // Allocate host input and output memory as pinned memory using hipHostMalloc.
     // It will ensure that the memory copies will be performed
     // asynchronously when using hipMemcpyAsync
-
-    // Number of streams to be used. It is hardcoded to 2 as this example demonstrates
-    // only two kernel launches and their management.
-    constexpr unsigned int num_streams = 2;
 
     t.report("PERF: before malloc: ");
     // Allocate host output memory
@@ -154,6 +156,7 @@ int main()
     // Set the block dimensions
     constexpr unsigned int threads_per_block_x = 4;
     constexpr unsigned int threads_per_block_y = 4;
+#endif
 
    // Create streams
     std::vector<hipStream_t> streams(num_streams);
@@ -162,6 +165,7 @@ int main()
         HIP_CHECK(hipStreamCreate(&streams[i]));
     }
 
+#if 0
     // Allocate device input and output memory and copy host input data to device memory
     std::vector<float*> d_in(num_streams);
     std::vector<float*> d_transpose_matrix(num_streams);
@@ -211,13 +215,13 @@ int main()
     }
     t.report("PERF: after kernel loop: ");
 
-
     // Asynchronously copy the results from device to host
     HIP_CHECK(hipMemcpyAsync(h_transpose_matrix[0],
                              d_transpose_matrix[0],
                              size_in_bytes,
                              hipMemcpyDeviceToHost,
-                             streams[0]));
+                             stream));
+
     t.report("PERF: after hipMemcpyAsync s0: ");
 
     HIP_CHECK(hipMemcpyAsync(h_transpose_matrix[1],
@@ -251,6 +255,22 @@ int main()
     std::cout << std::endl;
     t.report("PERF: after prints: ");
 
+    // Free device memory
+    HIP_CHECK(hipFree(d_in[0]));
+    HIP_CHECK(hipFree(d_in[1]));
+    HIP_CHECK(hipFree(d_transpose_matrix[0]));
+    HIP_CHECK(hipFree(d_transpose_matrix[1]));
+    t.report("PERF: after hipFree: ");
+
+    // Free host memory
+    for(unsigned int i = 0; i < num_streams; i++)
+    {
+        HIP_CHECK(hipHostFree(h_in[i]));
+        HIP_CHECK(hipHostFree(h_transpose_matrix[i]));
+    }
+    t.report("PERF: after hipHostFree: ");
+#endif
+
     float* h1_out = new float[N];
     float* h2_out = new float[N];
     float* d1_out;
@@ -258,8 +278,10 @@ int main()
     HIP_CHECK(hipMalloc(&d1_out, N * sizeof(float)));
     HIP_CHECK(hipMalloc(&d2_out, N * sizeof(float)));
 
+    //dim3 blockSize(256);
+    //dim3 gridSize((N + blockSize.x - 1) / blockSize.x);
     dim3 blockSize(256);
-    dim3 gridSize((N + blockSize.x - 1) / blockSize.x);
+    dim3 gridSize(512);
 
     t.report("PERF: after hipMalloc_2: ");
     // Time measurement
@@ -272,8 +294,10 @@ int main()
     HIP_CHECK(hipEventRecord(start));
     // Launch heavy_fib_kernel
     //heavy_fib_kernel<<<gridSize, blockSize, 0, streams[0]>>>(d1_out);
-    heavy_trig_kernel<<<gridSize, blockSize, 0, streams[0]>>>(d1_out);
-    heavy_trig_kernel<<<gridSize, blockSize, 0, streams[1]>>>(d2_out);
+    heavy_trig_kernel<0><<<gridSize, blockSize, 0, streams[0]>>>(d1_out);
+    heavy_trig_kernel<512><<<gridSize, blockSize, 0, streams[1]>>>(d1_out);
+    heavy_trig_kernel<0><<<gridSize, blockSize, 0, streams[0]>>>(d2_out);
+    heavy_trig_kernel<512><<<gridSize, blockSize, 0, streams[1]>>>(d2_out);
     HIP_CHECK(hipEventRecord(stop));
     t.report("PERF: after hipEventRecord(stop): ");
     
@@ -286,6 +310,14 @@ int main()
     HIP_CHECK(hipEventElapsedTime(&ms, start, stop));
     std::cout << "Kernel time: " << ms / 1000.0f << " seconds\n";
 
+    // Check out data
+    for (int i=0; i < N; i++) {
+      if (h1_out[i] == 0 || h2_out[i] == 0) {
+        std::cout << "h1_out: " << h1_out[i] << " and h2_out: " << h2_out[i] << " at i:" << i << std::endl;
+        break;
+      }
+    }
+
     HIP_CHECK(hipFree(d1_out));
     HIP_CHECK(hipFree(d2_out));
     delete[] h1_out;
@@ -295,22 +327,6 @@ int main()
     HIP_CHECK(hipStreamDestroy(streams[0]))
     HIP_CHECK(hipStreamDestroy(streams[1]))
     t.report("PERF: after hipStreamDestroy: ");
-
-    // Free device memory
-    HIP_CHECK(hipFree(d_in[0]));
-    HIP_CHECK(hipFree(d_in[1]));
-    HIP_CHECK(hipFree(d_transpose_matrix[0]));
-    HIP_CHECK(hipFree(d_transpose_matrix[1]));
-    t.report("PERF: after hipFree: ");
-
-
-    // Free host memory
-    for(unsigned int i = 0; i < num_streams; i++)
-    {
-        HIP_CHECK(hipHostFree(h_in[i]));
-        HIP_CHECK(hipHostFree(h_transpose_matrix[i]));
-    }
-    t.report("PERF: after hipHostFree: ");
 
     std::cout << "streams completed!" << std::endl;
 }
