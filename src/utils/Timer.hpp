@@ -68,6 +68,13 @@ class Timer {
       std::cout << msg << duration << " ms\n";
     }
 
+    static void print_current_time(const std::string& msg = "PERF: ") {
+      auto now = std::chrono::steady_clock::now();
+      auto time_since_epoch = now.time_since_epoch();
+      auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(time_since_epoch);
+      std::cout << msg << milliseconds.count() << std::endl;
+    }
+
   private:
     std::chrono::time_point<std::chrono::steady_clock> start_;
 };
